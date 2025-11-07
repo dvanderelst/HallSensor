@@ -6,11 +6,15 @@ from Library.Utils import frac_to_unicode
 from matplotlib import pyplot as plt
 import matplotlib.tri as mtri
 from matplotlib.colors import BoundaryNorm
+from matplotlib.colors import Normalize
+
 
 remanence = 'N52'
-pivot_y_mm = 50
-distance_between_sensor_magnet = 3
+pivot_y_mm = 50 # mm
+distance_between_sensor_magnet = 5 #mm
 threshold_delta = 2500  # mV
+max_diameter_plot = 15  # mm
+max_thickness_plot = 10  # mm
 
 theta_array_deg = np.linspace(-10,10, 100)
 sensitivity = 2.5 #mv/Gauss
@@ -64,20 +68,18 @@ x = final['diam_mm'].to_numpy()
 y = final['thick_mm'].to_numpy()
 z = final['delta_voltage'].to_numpy()
 
-levels_core = np.linspace(z.min(), z.max(), 20)
-# include the decision threshold (if it lies within or outside the observed range)
-bounds = np.sort(np.unique(np.concatenate([levels_core, [threshold_delta, z.max()]])))
-if bounds.size < 2:
-    bounds = np.array([z.min(), z.min() + 1])
-norm = BoundaryNorm(bounds, ncolors=256)
 
+z_plot = np.minimum(z, threshold_delta)
 fig, ax = plt.subplots()
-
 tri = mtri.Triangulation(x, y)
-cs = ax.tricontourf(tri, z, levels=bounds, cmap='hot', norm=norm)
+
+vmin = z.min();vmax = threshold_delta   # <-- upper limit of the colormap (everything above is "over")
+# Copy the colormap so we can modify it
+cmap = plt.get_cmap('hot').copy()
+cmap.set_over('gray')   # <-- set the color for values above threshold
+cs = ax.tricontourf(tri, z,cmap=cmap,norm=Normalize(vmin=vmin, vmax=vmax), extend='max')
 
 ax.triplot(tri, color='k', alpha=0.2, linewidth=0.5)
-
 low_mask = z < threshold_delta
 ax.scatter(x[low_mask], y[low_mask], facecolors='none', linewidths=1, edgecolors='k')
 
@@ -101,9 +103,16 @@ ax_right.set_yticks(thick_ticks_mm); ax_right.set_yticklabels([frac_to_unicode(s
 ax_top.set_xlabel('Diameter (inch fraction)')
 ax_right.set_ylabel('Thickness (inch fraction)')
 
+dia_min = sizes.diam_mm.min()
+tck_min = sizes.thick_mm.min()
+
+plt.xlim(dia_min-0.1, max_diameter_plot)
+plt.ylim(tck_min-0.1, max_thickness_plot)
+
 # ONE colorbar, placed right with spacing
 cbar = fig.colorbar(cs, ax=ax, location='right', pad=0.08, shrink=0.9, aspect=25)
 cbar.set_label('Delta Voltage (mV)')
+
 
 fig.tight_layout()
 plt.show()
