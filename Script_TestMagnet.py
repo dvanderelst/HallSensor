@@ -4,20 +4,20 @@ from Library.Utils import in2mm, mm2in
 from matplotlib import pyplot as plt
 import numpy as np
 
-
-diameter_mm = in2mm(1/4)
-thickness_mm = in2mm(1/32)
 remanence = 'N52'
 
-# distance along the rod from magnet center to the sensor
-# (positive toward the pivot).
 pivot_y_mm = 50
-L_mm = 45
+distance_between_sensor_magnet = 5
+diameter_mm = 7.5#in2mm(1/4)
+thickness_mm = 2.5 #in2mm(1/32)
 theta_array_deg = np.linspace(-10,10, 100)
 sensitivity = 2.5 #mv/Gauss
 
+
 m = MagnetDisk(diameter_mm, thickness_mm, remanence)
-trace = sensor_fixed_magnet_trace(m, pivot_y_mm, L_mm, theta_array_deg)
+pendulum_length = (pivot_y_mm - thickness_mm /2) - distance_between_sensor_magnet
+
+trace = sensor_fixed_magnet_trace(m, pivot_y_mm, pendulum_length, theta_array_deg)
 field_grid(m, x_extent_mm=25, y_extent_mm=25, plot='magnitude')
 sensor_pos = trace['sensor_pos_mm']
 sensor_pos_x = sensor_pos[:, 0]

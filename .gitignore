@@ -4,3 +4,7 @@
 __pycache__/
 
 *.odg#
+
+.~lock.sweep_magnet.xlsx#
+
+*.xlsx
