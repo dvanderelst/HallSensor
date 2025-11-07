@@ -64,7 +64,11 @@ x = final['diam_mm'].to_numpy()
 y = final['thick_mm'].to_numpy()
 z = final['delta_voltage'].to_numpy()
 
-bounds = np.concatenate([np.linspace(z.min(), threshold_delta, 20), [z.max()]])
+levels_core = np.linspace(z.min(), z.max(), 20)
+# include the decision threshold (if it lies within or outside the observed range)
+bounds = np.sort(np.unique(np.concatenate([levels_core, [threshold_delta, z.max()]])))
+if bounds.size < 2:
+    bounds = np.array([z.min(), z.min() + 1])
 norm = BoundaryNorm(bounds, ncolors=256)
 
 fig, ax = plt.subplots()
@@ -79,7 +83,9 @@ ax.scatter(x[low_mask], y[low_mask], facecolors='none', linewidths=1, edgecolors
 
 ax.set_xlabel('Diameter (mm)')
 ax.set_ylabel('Thickness (mm)')
-ax.set_xlim(0, 20); ax.set_ylim(0, 20)
+# keep limits tight to the available data range instead of a hard-coded window
+ax.set_xlim(0, x.max())
+ax.set_ylim(0, y.max())
 ax.set_title('Magnet Size Sweep – Triangulated Surface')
 
 # secondary axes with inch fractions
