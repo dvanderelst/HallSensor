@@ -1,6 +1,6 @@
-from Magnet import MagnetDisk, field_grid
-from Pendulum import sensor_fixed_magnet_trace
-from Utils import in2mm, mm2in
+from Library.Magnet import MagnetDisk, field_grid
+from Library.Pendulum import sensor_fixed_magnet_trace
+from Library.Utils import in2mm, mm2in
 from matplotlib import pyplot as plt
 import numpy as np
 
