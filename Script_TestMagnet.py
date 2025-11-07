@@ -6,7 +6,7 @@ import numpy as np
 
 
 diameter_mm = in2mm(1/4)
-thickness_mm = in2mm(1/8)
+thickness_mm = in2mm(1/32)
 remanence = 'N52'
 
 # distance along the rod from magnet center to the sensor
