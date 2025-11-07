@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from Library.Magnet import MagnetDisk, field_grid
 from Library.Pendulum import sensor_fixed_magnet_trace
-from Library.Utils import in2mm, mm2in
+from Library.Utils import frac_to_unicode
 from matplotlib import pyplot as plt
 import matplotlib.tri as mtri
 from matplotlib.colors import BoundaryNorm
@@ -63,26 +63,43 @@ final.to_excel('sweep_magnet.xlsx')
 x = final['diam_mm'].to_numpy()
 y = final['thick_mm'].to_numpy()
 z = final['delta_voltage'].to_numpy()
-z_clipped = np.minimum(z, threshold_delta)
-low_mask = z < threshold_delta
-
-tri = mtri.Triangulation(x, y)
-
-plt.figure()
-
 
 bounds = np.concatenate([np.linspace(z.min(), threshold_delta, 20), [z.max()]])
 norm = BoundaryNorm(bounds, ncolors=256)
-cs = plt.tricontourf(tri, z, levels=bounds, cmap='hot', norm=norm)
 
-plt.triplot(tri, color='k', alpha=0.2, linewidth=0.5)  # optional: show triangles
-plt.scatter(x[low_mask], y[low_mask], facecolors='none', linewidths=1, edgecolors='k')
-plt.colorbar(cs, label='Delta Voltage (mV)')
-plt.xlabel('Diameter (mm)')
-plt.ylabel('Thickness (mm)')
-plt.xlim(0, 20)
-plt.ylim(0, 20)
-plt.title('Magnet Size Sweep – Triangulated Surface')
+fig, ax = plt.subplots()
+
+tri = mtri.Triangulation(x, y)
+cs = ax.tricontourf(tri, z, levels=bounds, cmap='hot', norm=norm)
+
+ax.triplot(tri, color='k', alpha=0.2, linewidth=0.5)
+
+low_mask = z < threshold_delta
+ax.scatter(x[low_mask], y[low_mask], facecolors='none', linewidths=1, edgecolors='k')
+
+ax.set_xlabel('Diameter (mm)')
+ax.set_ylabel('Thickness (mm)')
+ax.set_xlim(0, 20); ax.set_ylim(0, 20)
+ax.set_title('Magnet Size Sweep – Triangulated Surface')
+
+# secondary axes with inch fractions
+diam_ticks_mm = np.sort(final['diam_mm'].unique())
+diam_labels_in = [final.loc[final['diam_mm'] == mm, 'diam_in'].iloc[0] for mm in diam_ticks_mm]
+thick_ticks_mm = np.sort(final['thick_mm'].unique())
+thick_labels_in = [final.loc[final['thick_mm'] == mm, 'thick_in'].iloc[0] for mm in thick_ticks_mm]
+
+ax_top = ax.secondary_xaxis('top')
+ax_right = ax.secondary_yaxis('right')
+ax_top.set_xticks(diam_ticks_mm);  ax_top.set_xticklabels([frac_to_unicode(s) for s in diam_labels_in])
+ax_right.set_yticks(thick_ticks_mm); ax_right.set_yticklabels([frac_to_unicode(s) for s in thick_labels_in])
+ax_top.set_xlabel('Diameter (inch fraction)')
+ax_right.set_ylabel('Thickness (inch fraction)')
+
+# ONE colorbar, placed right with spacing
+cbar = fig.colorbar(cs, ax=ax, location='right', pad=0.08, shrink=0.9, aspect=25)
+cbar.set_label('Delta Voltage (mV)')
+
+fig.tight_layout()
 plt.show()
 
 
