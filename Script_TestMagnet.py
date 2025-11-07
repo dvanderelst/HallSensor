@@ -4,18 +4,15 @@ from Library.Utils import in2mm, mm2in
 from matplotlib import pyplot as plt
 import numpy as np
 
-
-diameter_mm = in2mm(1/4)
-thickness_mm = in2mm(1/32)
 remanence = 'N52'
 
-# distance along the rod from magnet center to the sensor
-# (positive toward the pivot).
 pivot_y_mm = 50
-distance_between_sensor_magnet = 3
-
+distance_between_sensor_magnet = 5
+diameter_mm = 7.5#in2mm(1/4)
+thickness_mm = 2.5 #in2mm(1/32)
 theta_array_deg = np.linspace(-10,10, 100)
 sensitivity = 2.5 #mv/Gauss
+
 
 m = MagnetDisk(diameter_mm, thickness_mm, remanence)
 pendulum_length = (pivot_y_mm - thickness_mm /2) - distance_between_sensor_magnet
