@@ -1,15 +1,15 @@
 import numpy as np
 import pandas as pd
-from scipy.interpolate import griddata
 from Library.Magnet import MagnetDisk, field_grid
 from Library.Pendulum import sensor_fixed_magnet_trace
 from Library.Utils import in2mm, mm2in
 from matplotlib import pyplot as plt
 import matplotlib.tri as mtri
+from matplotlib.colors import BoundaryNorm
 
 remanence = 'N52'
 pivot_y_mm = 50
-distance_between_sensor_magnet = 5
+distance_between_sensor_magnet = 3
 threshold_delta = 2500  # mV
 
 theta_array_deg = np.linspace(-10,10, 100)
@@ -37,7 +37,6 @@ for i in range(n_sizes):
     # plt.plot(sensor_pos_x, sensor_pos_y, color='red')
     # plt.show()
 
-
     min_field = float(np.min(field_reading))
     max_field = float(np.max(field_reading))
     min_voltage = float(np.min(voltage_reading))
@@ -64,12 +63,18 @@ final.to_excel('sweep_magnet.xlsx')
 x = final['diam_mm'].to_numpy()
 y = final['thick_mm'].to_numpy()
 z = final['delta_voltage'].to_numpy()
+z_clipped = np.minimum(z, threshold_delta)
 low_mask = z < threshold_delta
 
 tri = mtri.Triangulation(x, y)
 
 plt.figure()
-cs = plt.tricontourf(tri, z, levels=20, cmap='viridis')
+
+
+bounds = np.concatenate([np.linspace(z.min(), threshold_delta, 20), [z.max()]])
+norm = BoundaryNorm(bounds, ncolors=256)
+cs = plt.tricontourf(tri, z, levels=bounds, cmap='hot', norm=norm)
+
 plt.triplot(tri, color='k', alpha=0.2, linewidth=0.5)  # optional: show triangles
 plt.scatter(x[low_mask], y[low_mask], facecolors='none', linewidths=1, edgecolors='k')
 plt.colorbar(cs, label='Delta Voltage (mV)')
